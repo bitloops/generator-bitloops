@@ -200,7 +200,11 @@ export default class extends Generator {
 
     this.commitChanges = async function() {
       this.log('Committing changes to git...');
-      await new Promise((resolve, error) => {exec('git add . && git commit -m "Initial setup"').on('exit', (code) => {
+      await new Promise((resolve) => {exec(`cd ${toKebabCase(this.options.project)} && git add . && git commit -m "Initial setup"`).on('exit', (code) => {
+        if (code !== 0) {
+          this.log('Error committing changes to git! ', code);
+          resolve();
+        }
         this.log('Git changes committed!');
         resolve();
       });});
