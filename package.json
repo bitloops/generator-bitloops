@@ -1,6 +1,6 @@
 {
   "name": "generator-bitloops",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bitloops Yeoman generator",
   "license": "MIT",
   "author": "Bitloops S.A.",
@@ -9,9 +9,13 @@
     "url": "https://github.com/bitloops/generator-bitloops"
   },
   "type": "module",
+  "bin": {
+    "bitloops-generator": "./cli.mjs"
+  },
   "files": [
     "app",
-    "setup"
+    "setup",
+    "cli.js"
   ],
   "keywords": [
     "bitloops",
@@ -23,6 +27,7 @@
     "yeoman-generator"
   ],
   "dependencies": {
+    "yeoman-environment": "^4.4.3",
     "yeoman-generator": "^7.3.3"
   }
 }

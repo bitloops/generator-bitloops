@@ -1,6 +1,13 @@
 import fs from 'fs';
 import { exec } from 'child_process';
 import Generator from 'yeoman-generator';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Convert `import.meta.url` to a path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 function toKebabCase(str) {
   return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase().replace(/\s+/g, '-');
@@ -9,6 +16,7 @@ function toKebabCase(str) {
 export default class extends Generator {
   constructor(args, opts) {
     super(args, opts);
+    this.sourceRoot(path.join(__dirname, 'templates'));
 
     // Define options
     this.option('project', {
@@ -103,12 +111,13 @@ export default class extends Generator {
     }
   
     this.patchFiles = async function() {
-      // await new Promise((resolve, reject) => this.fs.commit((err) => (err ? reject(err) : resolve())));
       if (this.options.storybook) {
         if (this.options.typescript) {
           this.log('Replace Next.js\' TypeScript configuration file with JS...');
           // Remove TypeScript configuration files given they require Next.js 15
           fs.unlinkSync(this.destinationPath('next.config.ts'));
+          console.log('Template Path:', this.templatePath('next.config.js'));
+          console.log('Destination Path:', this.destinationPath('next.config.js'));
           this.fs.copyTpl(
             this.templatePath('next.config.js'),
             this.destinationPath('next.config.js'),
