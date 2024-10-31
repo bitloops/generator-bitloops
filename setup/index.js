@@ -85,7 +85,9 @@ export default class extends Generator {
       }
       
       this.log("Installing Next.js...");
-      await new Promise((resolve, error) => {exec(`npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(this.options.project)} && npm install next@14 react@18 react-dom@18`).on('exit', (code) => {
+      const additionalPackages = 'react-tooltip';
+      const patchPackages = `next@14 react@18 react-dom@18 ${additionalPackages}`;
+      await new Promise((resolve, error) => {exec(`npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(this.options.project)} && npm install ${patchPackages}`).on('exit', (code) => {
         this.destinationRoot(this.destinationPath(toKebabCase(this.options.project)));
         resolve();
       });});
@@ -95,10 +97,11 @@ export default class extends Generator {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log("Adding Storybook...");
-        this.spawnCommandSync('npx', ['-y', 'storybook@latest', 'init', '--no-dev']);
-        if (this.options.tailwind) {
-          this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
-        }
+        this.spawnCommandSync('npx', ['-y', 'storybook@7.4', 'init', '--no-dev']);
+        // if (this.options.tailwind) {
+        // Tailwind CSS specific setup if needed
+        //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
+        // }
       }
     }
   
@@ -115,14 +118,17 @@ export default class extends Generator {
         if (this.options.typescript) {
           this.log('Replace Next.js\' TypeScript configuration file with JS...');
           // Remove TypeScript configuration files given they require Next.js 15
-          fs.unlinkSync(this.destinationPath('next.config.ts'));
-          console.log('Template Path:', this.templatePath('next.config.js'));
-          console.log('Destination Path:', this.destinationPath('next.config.js'));
+          try {
+            fs.unlinkSync(this.destinationPath('next.config.ts'));
+            this.log(`Deleted next.config.ts`);
+          } catch (err) {
+            console.error('Error deleting next.config.ts:', err);
+          }
           this.fs.copyTpl(
             this.templatePath('next.config.js'),
             this.destinationPath('next.config.js'),
-          );  
-          this.log(`Deleted next.config.ts and created next.config.js instead`);
+          );
+          this.log(`Created next.config.js instead`);
         }
       }
   
@@ -178,6 +184,18 @@ export default class extends Generator {
         this.templatePath('globals.css'),
         this.destinationPath('src/app/globals.css'),
       ); 
+
+      this.log('Adding Bitloops support components...');
+      this.fs.copyTpl(
+        this.templatePath('src.components.bitloops.Unsupported.tsx'),
+        this.destinationPath('src/components/bitloops/Unsupported.tsx'),
+      ); 
+      if (this.options.storybook) {
+        this.fs.copyTpl(
+          this.templatePath('src.components.bitloops.Unsupported.stories.tsx'),
+          this.destinationPath('src/components/bitloops/Unsupported.stories.tsx'),
+        ); 
+      }
     }
   }
 

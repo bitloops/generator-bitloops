@@ -1,7 +1,7 @@
 {
   "name": "generator-bitloops",
-  "version": "0.2.0",
-  "description": "Bitloops Yeoman generator",
+  "version": "0.3.1",
+  "description": "Next.js with TypeScript, Tailwind, Storybook and Cypress generator by Bitloops",
   "license": "MIT",
   "author": "Bitloops S.A.",
   "repository": {
@@ -15,7 +15,7 @@
   "files": [
     "app",
     "setup",
-    "cli.js"
+    "cli.mjs"
   ],
   "keywords": [
     "bitloops",
