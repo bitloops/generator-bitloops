@@ -97,7 +97,7 @@ export default class extends Generator {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log("Adding Storybook...");
-        this.spawnCommandSync('npx', ['-y', 'storybook@7.4', 'init', '--no-dev']);
+        this.spawnCommandSync('npx', ['-y', 'storybook@8.4', 'init', '--no-dev']);
         // if (this.options.tailwind) {
         // Tailwind CSS specific setup if needed
         //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
@@ -197,6 +197,14 @@ export default class extends Generator {
         ); 
       }
     }
+
+    this.commitChanges = async function() {
+      this.log('Committing changes to git...');
+      await new Promise((resolve, error) => {exec('git add . && git commit -m "Initial setup"').on('exit', (code) => {
+        this.log('Git changes committed!');
+        resolve();
+      });});
+    }
   }
 
   initializing() {
@@ -222,6 +230,7 @@ export default class extends Generator {
     this.installCypress();
     this.log('Patching files');
     await this.patchFiles();
+    await this.commitChanges();
   }
 
   end() {
