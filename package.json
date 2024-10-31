@@ -1,0 +1,28 @@
+{
+  "name": "generator-bitloops",
+  "version": "0.1.0",
+  "description": "Bitloops Yeoman generator",
+  "license": "MIT",
+  "author": "Bitloops S.A.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitloops/generator-bitloops"
+  },
+  "type": "module",
+  "files": [
+    "app",
+    "setup"
+  ],
+  "keywords": [
+    "bitloops",
+    "nextjs",
+    "tailwindcss",
+    "typescript",
+    "storybook",
+    "cypress",
+    "yeoman-generator"
+  ],
+  "dependencies": {
+    "yeoman-generator": "^7.3.3"
+  }
+}
