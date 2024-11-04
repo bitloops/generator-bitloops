@@ -56,19 +56,20 @@ export default class extends Generator {
       default: false,
     });
 
+    this.option('git', {
+      type: Boolean,
+      description: 'Commit changes to git',
+      default: false,
+    });
+
     this.installNextJS = async function() {
       // Clone Next.js template with Tailwind if specified, using the project name
-      const createNextAppCommand = ['-y', 'create-next-app@latest'];
+      const createNextAppCommand = ['-y', 'create-next-app@14.2.16'];
       createNextAppCommand.push(toKebabCase(this.options.project)); // Use the project name for the directory
       createNextAppCommand.push('--app');
       createNextAppCommand.push('--empty');
       createNextAppCommand.push('--src-dir');
-      if (this.options.storybook) {
-        // Disable TurboPack for Storybook compatibility given the Next.js downgrade that will follow
-        createNextAppCommand.push('--no-turbopack');
-      } else {
-        createNextAppCommand.push('--turbopack'); 
-      }
+      // createNextAppCommand.push('--turbopack'); when we go to Next.js 15
       createNextAppCommand.push('--import-alias');
       createNextAppCommand.push('@/*');
       createNextAppCommand.push('--use-npm');
@@ -85,9 +86,9 @@ export default class extends Generator {
       }
       
       this.log("Installing Next.js...");
-      const additionalPackages = 'react-tooltip';
-      const patchPackages = `next@14 react@18 react-dom@18 ${additionalPackages}`;
-      await new Promise((resolve, error) => {exec(`npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(this.options.project)} && npm install ${patchPackages}`).on('exit', (code) => {
+      const patchPackages = '';//'next@14 react@18 react-dom@18';
+      const additionalPackages = `react-tooltip ${patchPackages}`;
+      await new Promise((resolve, error) => {exec(`npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(this.options.project)} && npm install ${additionalPackages}`).on('exit', (code) => {
         this.destinationRoot(this.destinationPath(toKebabCase(this.options.project)));
         resolve();
       });});
@@ -98,8 +99,8 @@ export default class extends Generator {
       if (this.options.storybook) {
         this.log("Adding Storybook...");
         this.spawnCommandSync('npx', ['-y', 'storybook@8.4', 'init', '--no-dev']);
-        // if (this.options.tailwind) {
-        // Tailwind CSS specific setup if needed
+        // if (this.options.tailwind && this.options.storybook) {
+        // Tailwind CSS specific setup for older versions of Storybook
         //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
         // }
       }
@@ -114,24 +115,6 @@ export default class extends Generator {
     }
   
     this.patchFiles = async function() {
-      if (this.options.storybook) {
-        if (this.options.typescript) {
-          this.log('Replace Next.js\' TypeScript configuration file with JS...');
-          // Remove TypeScript configuration files given they require Next.js 15
-          try {
-            fs.unlinkSync(this.destinationPath('next.config.ts'));
-            this.log(`Deleted next.config.ts`);
-          } catch (err) {
-            console.error('Error deleting next.config.ts:', err);
-          }
-          this.fs.copyTpl(
-            this.templatePath('next.config.js'),
-            this.destinationPath('next.config.js'),
-          );
-          this.log(`Created next.config.js instead`);
-        }
-      }
-  
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log("Making Storybook changes...");
@@ -158,7 +141,7 @@ export default class extends Generator {
       }
   
       if (this.options.cypress) {
-        this.log("Adding Cypress config...");
+        this.log('Adding Cypress config...');
         this.fs.copyTpl(
           this.templatePath('cypress.config.ts'),
           this.destinationPath('cypress.config.ts'),
@@ -234,7 +217,9 @@ export default class extends Generator {
     this.installCypress();
     this.log('Patching files');
     await this.patchFiles();
-    await this.commitChanges();
+    if (this.options.git) {
+      await this.commitChanges();
+    }
   }
 
   end() {
