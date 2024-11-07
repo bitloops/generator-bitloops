@@ -97,8 +97,9 @@ export default class extends Generator {
     this.installStorybook = function() {    
       // Conditionally initialize Storybook
       if (this.options.storybook) {
-        this.log("Adding Storybook...");
-        this.spawnCommandSync('npx', ['-y', 'storybook@8.4', 'init', '--no-dev']);
+        this.log('Installing Storybook...');
+        this.spawnCommandSync('npx', ['-y', 'storybook@^8.4', 'init', '--no-dev']);
+        this.log('Storybook installed!');
         // if (this.options.tailwind && this.options.storybook) {
         // Tailwind CSS specific setup for older versions of Storybook
         //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
@@ -109,15 +110,16 @@ export default class extends Generator {
     this.installCypress = function() {    
       // Conditionally add Cypress
       if (this.options.cypress) {
-        this.log("Adding Cypress...");
+        this.log('Installing Cypress...');
         this.spawnCommandSync('npm', ['install', '--save-dev', 'cypress']);
+        this.log('Cypress installed!');
       }
     }
   
     this.patchFiles = async function() {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
-        this.log("Making Storybook changes...");
+        this.log('Making Storybook changes...');
         if (this.options.tailwind) {
           fs.unlinkSync(this.destinationPath('.storybook/preview.ts'));
           this.log('Setting up Tailwind CSS with Storybook...');
@@ -211,11 +213,8 @@ export default class extends Generator {
 
   async main() {
     await this.installNextJS();
-    this.log('Installing Storybook');
     this.installStorybook();
-    this.log('Installing Cypress');
     this.installCypress();
-    this.log('Patching files');
     await this.patchFiles();
     if (this.options.git) {
       await this.commitChanges();
