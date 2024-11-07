@@ -56,6 +56,12 @@ export default class extends Generator {
       default: false,
     });
 
+    this.option('bitloops', {
+      type: Boolean,
+      description: 'Add Bitloops specific boilerplate files',
+      default: false,
+    });
+
     this.option('git', {
       type: Boolean,
       description: 'Commit changes to git',
