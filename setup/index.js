@@ -193,6 +193,13 @@ export default class extends Generator {
             this.destinationPath(path),
           ); 
         }
+        if (this.options.cypress) {
+          const path = 'cypress/helpers/index.ts';
+          this.fs.copyTpl(
+            this.templatePath(path),
+            this.destinationPath(path),
+          );
+        }
       }
     }
 
