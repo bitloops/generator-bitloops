@@ -119,6 +119,9 @@ export default class extends Generator {
         this.log('Installing Cypress...');
         this.spawnCommandSync('npm', ['install', '--save-dev', 'cypress']);
         this.log('Cypress installed!');
+        if (this.options.bitloops) {
+          this.spawnCommandSync('npm', ['install', '--save-dev', 'mochawesome', 'mochawesome-merge', 'mochawesome-report-generator']);
+        }
       }
     }
   
@@ -176,16 +179,27 @@ export default class extends Generator {
         this.destinationPath('src/app/globals.css'),
       ); 
 
-      this.log('Adding Bitloops support components...');
-      this.fs.copyTpl(
-        this.templatePath('src.components.bitloops.Unsupported.tsx'),
-        this.destinationPath('src/components/bitloops/Unsupported.tsx'),
-      ); 
-      if (this.options.storybook) {
+      if (this.options.bitloops) {
+        this.log('Adding Bitloops support components...');
+        const path = 'src/components/bitloops/Unsupported.tsx';
         this.fs.copyTpl(
-          this.templatePath('src.components.bitloops.Unsupported.stories.tsx'),
-          this.destinationPath('src/components/bitloops/Unsupported.stories.tsx'),
+          this.templatePath(path),
+          this.destinationPath(path),
         ); 
+        if (this.options.storybook) {
+          const path = 'src/components/bitloops/Unsupported.stories.tsx';
+          this.fs.copyTpl(
+            this.templatePath(path),
+            this.destinationPath(path),
+          ); 
+        }
+        if (this.options.cypress) {
+          const path = 'cypress/helpers/index.ts';
+          this.fs.copyTpl(
+            this.templatePath(path),
+            this.destinationPath(path),
+          );
+        }
       }
     }
 
