@@ -177,14 +177,16 @@ export default class extends Generator {
       ); 
 
       this.log('Adding Bitloops support components...');
+      const path = 'src/components/bitloops/Unsupported.tsx';
       this.fs.copyTpl(
-        this.templatePath('src.components.bitloops.Unsupported.tsx'),
-        this.destinationPath('src/components/bitloops/Unsupported.tsx'),
+        this.templatePath(path),
+        this.destinationPath(path),
       ); 
       if (this.options.storybook) {
+        const path = 'src/components/bitloops/Unsupported.stories.tsx';
         this.fs.copyTpl(
-          this.templatePath('src.components.bitloops.Unsupported.stories.tsx'),
-          this.destinationPath('src/components/bitloops/Unsupported.stories.tsx'),
+          this.templatePath(path),
+          this.destinationPath(path),
         ); 
       }
     }
