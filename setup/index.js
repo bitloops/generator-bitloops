@@ -119,6 +119,9 @@ export default class extends Generator {
         this.log('Installing Cypress...');
         this.spawnCommandSync('npm', ['install', '--save-dev', 'cypress']);
         this.log('Cypress installed!');
+        if (this.options.bitloops) {
+          this.spawnCommandSync('npm', ['install', '--save-dev', 'mochawesome', 'mochawesome-merge', 'mochawesome-report-generator']);
+        }
       }
     }
   
