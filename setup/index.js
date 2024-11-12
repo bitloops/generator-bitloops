@@ -8,9 +8,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
 function toKebabCase(str) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase().replace(/\s+/g, '-');
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase()
+    .replace(/\s+/g, '-');
 }
 
 export default class extends Generator {
@@ -68,7 +70,7 @@ export default class extends Generator {
       default: false,
     });
 
-    this.installNextJS = async function() {
+    this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
       const createNextAppCommand = ['-y', 'create-next-app@14.2.16'];
       createNextAppCommand.push(toKebabCase(this.options.project)); // Use the project name for the directory
@@ -80,52 +82,71 @@ export default class extends Generator {
       createNextAppCommand.push('@/*');
       createNextAppCommand.push('--use-npm');
       createNextAppCommand.push('--eslint');
-      
+
       if (this.options.typescript) {
         createNextAppCommand.push('--typescript'); // This will avoid the TypeScript prompt
       } else {
         createNextAppCommand.push('--js');
       }
-      
+
       if (this.options.tailwind) {
         createNextAppCommand.push('--tailwind');
       }
-      
-      this.log("Installing Next.js...");
-      const patchPackages = '';//'next@14 react@18 react-dom@18';
-      const additionalPackages = `react-tooltip ${patchPackages}`;
-      await new Promise((resolve, error) => {exec(`npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(this.options.project)} && npm install ${additionalPackages}`).on('exit', (code) => {
-        this.destinationRoot(this.destinationPath(toKebabCase(this.options.project)));
-        resolve();
-      });});
-    }
 
-    this.installStorybook = function() {    
+      this.log('Installing Next.js...');
+      const patchPackages = ''; //'next@14 react@18 react-dom@18';
+      const additionalPackages = `react-tooltip ${patchPackages}`;
+      await new Promise((resolve, error) => {
+        exec(
+          `npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(
+            this.options.project
+          )} && npm install ${additionalPackages}`
+        ).on('exit', (code) => {
+          this.destinationRoot(
+            this.destinationPath(toKebabCase(this.options.project))
+          );
+          resolve();
+        });
+      });
+    };
+
+    this.installStorybook = function () {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log('Installing Storybook...');
-        this.spawnCommandSync('npx', ['-y', 'storybook@^8.4', 'init', '--no-dev']);
+        this.spawnCommandSync('npx', [
+          '-y',
+          'storybook@^8.4',
+          'init',
+          '--no-dev',
+        ]);
         this.log('Storybook installed!');
         // if (this.options.tailwind && this.options.storybook) {
         // Tailwind CSS specific setup for older versions of Storybook
         //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
         // }
       }
-    }
-  
-    this.installCypress = function() {    
+    };
+
+    this.installCypress = function () {
       // Conditionally add Cypress
       if (this.options.cypress) {
         this.log('Installing Cypress...');
         this.spawnCommandSync('npm', ['install', '--save-dev', 'cypress']);
         this.log('Cypress installed!');
         if (this.options.bitloops) {
-          this.spawnCommandSync('npm', ['install', '--save-dev', 'mochawesome', 'mochawesome-merge', 'mochawesome-report-generator']);
+          this.spawnCommandSync('npm', [
+            'install',
+            '--save-dev',
+            'mochawesome',
+            'mochawesome-merge',
+            'mochawesome-report-generator',
+          ]);
         }
       }
-    }
-  
-    this.patchFiles = async function() {
+    };
+
+    this.patchFiles = async function () {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log('Making Storybook changes...');
@@ -134,102 +155,134 @@ export default class extends Generator {
           this.log('Setting up Tailwind CSS with Storybook...');
           this.fs.copyTpl(
             this.templatePath('storybook.preview.ts'),
-            this.destinationPath('.storybook/preview.ts'),
-          );  
+            this.destinationPath('.storybook/preview.ts')
+          );
         }
         this.log('Removing default Storybook stories...');
         try {
-          fs.rmSync(this.destinationPath('src/stories'), { recursive: true, force: true });
+          fs.rmSync(this.destinationPath('src/stories'), {
+            recursive: true,
+            force: true,
+          });
           console.log('Sample stories directory deleted successfully!');
         } catch (err) {
-            console.error('Error deleting sample stories directory:', err);
+          console.error('Error deleting sample stories directory:', err);
         }
         fs.unlinkSync(this.destinationPath('tailwind.config.ts'));
         this.fs.copyTpl(
           this.templatePath('tailwind.config.ts'),
-          this.destinationPath('tailwind.config.ts'),
+          this.destinationPath('tailwind.config.ts')
         );
       }
-  
+
       if (this.options.cypress) {
         this.log('Adding Cypress config...');
         this.fs.copyTpl(
           this.templatePath('cypress.config.ts'),
-          this.destinationPath('cypress.config.ts'),
-        ); 
+          this.destinationPath('cypress.config.ts')
+        );
       }
-  
+
       fs.unlinkSync(this.destinationPath('src/app/page.tsx'));
       this.fs.copyTpl(
         this.templatePath('next.app.page.tsx'),
-        this.destinationPath('src/app/page.tsx'),
-      ); 
-  
+        this.destinationPath('src/app/page.tsx')
+      );
+
       fs.unlinkSync(this.destinationPath('src/app/layout.tsx'));
       this.fs.copyTpl(
         this.templatePath('next.app.layout.tsx'),
         this.destinationPath('src/app/layout.tsx'),
-        { projectName: this.options.project },
+        { projectName: this.options.project }
       );
-      
+
       this.log('Adding Meyer reset in global.css...');
       fs.unlinkSync(this.destinationPath('src/app/globals.css'));
       this.fs.copyTpl(
         this.templatePath('globals.css'),
-        this.destinationPath('src/app/globals.css'),
-      ); 
+        this.destinationPath('src/app/globals.css')
+      );
 
       if (this.options.bitloops) {
         this.log('Adding Bitloops support components...');
-        const path = 'src/components/bitloops/Unsupported.tsx';
+        const unsupportedPath =
+          'src/components/bitloops/unsupported/Unsupported.tsx';
         this.fs.copyTpl(
-          this.templatePath(path),
-          this.destinationPath(path),
-        ); 
+          this.templatePath(unsupportedPath),
+          this.destinationPath(unsupportedPath)
+        );
+        const buttonPath = 'src/components/bitloops/button/Button.tsx';
+        this.fs.copyTpl(
+          this.templatePath(buttonPath),
+          this.destinationPath(buttonPath)
+        );
         if (this.options.storybook) {
-          const path = 'src/components/bitloops/Unsupported.stories.tsx';
+          const unsupportedPath =
+            'src/components/bitloops/unsupported/Unsupported.stories.tsx';
           this.fs.copyTpl(
-            this.templatePath(path),
-            this.destinationPath(path),
-          ); 
+            this.templatePath(unsupportedPath),
+            this.destinationPath(unsupportedPath)
+          );
+          const buttonPath =
+            'src/components/bitloops/button/Button.stories.tsx';
+          this.fs.copyTpl(
+            this.templatePath(buttonPath),
+            this.destinationPath(buttonPath)
+          );
         }
         if (this.options.cypress) {
           const path = 'cypress/helpers/index.ts';
-          this.fs.copyTpl(
-            this.templatePath(path),
-            this.destinationPath(path),
-          );
+          this.fs.copyTpl(this.templatePath(path), this.destinationPath(path));
         }
+        this.spawnCommandSync('npm', [
+          'install',
+          '--save-dev',
+          'react-aria-components',
+        ]);
       }
-    }
+    };
 
-    this.commitChanges = async function() {
+    this.commitChanges = async function () {
       this.log('Committing changes to git...');
-      await new Promise((resolve) => {exec(`cd ${toKebabCase(this.options.project)} && git add . && git commit -m "Initial setup"`).on('exit', (code) => {
-        if (code !== 0) {
-          this.log('Error committing changes to git! ', code);
+      await new Promise((resolve) => {
+        exec(
+          `cd ${toKebabCase(
+            this.options.project
+          )} && git add . && git commit -m "Initial setup"`
+        ).on('exit', (code) => {
+          if (code !== 0) {
+            this.log('Error committing changes to git! ', code);
+            resolve();
+          }
+          this.log('Git changes committed!');
           resolve();
-        }
-        this.log('Git changes committed!');
-        resolve();
-      });});
-    }
+        });
+      });
+    };
   }
 
   initializing() {
     // Check if the project name and --nextjs flag are provided
     if (!this.options.project) {
-      this.log("Error: --project option is required to specify the project name.");
+      this.log(
+        'Error: --project option is required to specify the project name.'
+      );
       process.exit(1);
     }
 
     if (!this.options.nextjs) {
-      this.log("Error: --nextjs option is currently required to scaffold a project.");
+      this.log(
+        'Error: --nextjs option is currently required to scaffold a project.'
+      );
       process.exit(1);
     }
 
-    this.log(`Initializing project ${toKebabCase(this.options.project)} with the selected options...`);
-  }  
+    this.log(
+      `Initializing project ${toKebabCase(
+        this.options.project
+      )} with the selected options...`
+    );
+  }
 
   async main() {
     await this.installNextJS();
@@ -242,12 +295,21 @@ export default class extends Generator {
   }
 
   end() {
-    this.log(`Your Bitloops project '${toKebabCase(this.options.project)}' setup is complete! 🎉🎉🎉`); 
+    this.log(
+      `Your Bitloops project '${toKebabCase(
+        this.options.project
+      )}' setup is complete! 🎉🎉🎉`
+    );
     this.log('');
     this.log('Use the following commands to start:');
-    this.log("- `npm run dev` to start the Next.js app.");
-    if (this.options.storybook) this.log("- `npm run storybook` to start Storybook.");
-    if (this.options.cypress) this.log("- `npx cypress open --e2e --browser chrome` to open Cypress.");
-    if (this.options.cypress) this.log("- `npx cypress run --e2e --browser chrome` to run Cypress on the terminal.");
+    this.log('- `npm run dev` to start the Next.js app.');
+    if (this.options.storybook)
+      this.log('- `npm run storybook` to start Storybook.');
+    if (this.options.cypress)
+      this.log('- `npx cypress open --e2e --browser chrome` to open Cypress.');
+    if (this.options.cypress)
+      this.log(
+        '- `npx cypress run --e2e --browser chrome` to run Cypress on the terminal.'
+      );
   }
-};
+}
