@@ -138,9 +138,30 @@ export default class extends Generator {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log('Installing Storybook...');
+        const versionsRaw = execSync('npm view storybook versions --json', {
+          encoding: 'utf-8',
+        });
+        const versions = JSON.parse(versionsRaw);
+  
+        // Filter for stable 8.4.x versions (exclude alpha/beta)
+        const stableVersions = versions
+          .filter(version => version.startsWith('8.4.'))
+          .filter(version => !version.includes('-')); // Exclude pre-releases like -alpha or -beta
+  
+        // Sort descending and get the latest
+        const latest84 = stableVersions.sort((a, b) => (a > b ? -1 : 1))[0];
+  
+        if (!latest84) {
+          throw new Error('No stable 8.4.x versions found.');
+        }
+  
+        // Log the chosen version (optional)
+        this.log(`Latest stable 8.4 version: ${latest84}`);
+  
+        // Use `this.spawnCommandSync` with the selected version
         this.spawnCommandSync('npx', [
           '-y',
-          'storybook@^8.4',
+          `storybook@${latest84}`,
           'init',
           '--no-dev',
         ]);
