@@ -8,11 +8,35 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function isKebabCase(str) {
+  // Check if the string is empty
+  if (!str || str.trim().length === 0) {
+    return false;
+  }
+
+  // Regular expression to check if a string is kebab-case,
+  // ensuring it starts with a lowercase letter or digit, allowing for lowercase letters and digits in the middle or end,
+  // and ensuring each new word starts with a lowercase letter or digit
+  const kebabCaseRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+  return kebabCaseRegex.test(str);
+}
+
 function toKebabCase(str) {
-  return str
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .toLowerCase()
-    .replace(/\s+/g, '-');
+  if (isKebabCase(str)) {
+    return str;
+  }
+
+  const words = str
+    .trim()
+    // Split by non-alphanumeric characters and the transition from lowercase to uppercase
+    .split(/(?=[A-Z])|[^a-zA-Z0-9]+/)
+    .filter((word) => word.length > 0);
+
+  return words
+    .map((word) => word.toLowerCase())
+    .filter((word) => word.length > 0) // Remove empty words
+    .join('-');
 }
 
 export default class extends Generator {
