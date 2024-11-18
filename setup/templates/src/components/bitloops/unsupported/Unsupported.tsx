@@ -9,7 +9,9 @@ type UnsupportedType =
   | 'LINE'
   | 'REGULAR_POLYGON'
   | 'SLICE'
-  | 'IMAGE';
+  | 'IMAGE'
+  | 'INSTANCE'
+  | 'COMPONENT';
 
 export type UnsupportedElementProps = {
   type: UnsupportedType;
