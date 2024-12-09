@@ -55,3 +55,7 @@ export const areVerticalRightAligned = (rects: DOMRect[]): boolean => {
   }
   return true;
 };
+
+export const roundToNearestHalf = (num: number): number => {
+  return Math.round(num * 2) / 2;
+};
