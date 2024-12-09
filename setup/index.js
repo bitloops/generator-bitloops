@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import Generator from 'yeoman-generator';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,11 +8,35 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function isKebabCase(str) {
+  // Check if the string is empty
+  if (!str || str.trim().length === 0) {
+    return false;
+  }
+
+  // Regular expression to check if a string is kebab-case,
+  // ensuring it starts with a lowercase letter or digit, allowing for lowercase letters and digits in the middle or end,
+  // and ensuring each new word starts with a lowercase letter or digit
+  const kebabCaseRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+  return kebabCaseRegex.test(str);
+}
+
 function toKebabCase(str) {
-  return str
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .toLowerCase()
-    .replace(/\s+/g, '-');
+  if (isKebabCase(str)) {
+    return str;
+  }
+
+  const words = str
+    .trim()
+    // Split by non-alphanumeric characters and the transition from lowercase to uppercase
+    .split(/(?=[A-Z])|[^a-zA-Z0-9]+/)
+    .filter((word) => word.length > 0);
+
+  return words
+    .map((word) => word.toLowerCase())
+    .filter((word) => word.length > 0) // Remove empty words
+    .join('-');
 }
 
 export default class extends Generator {
@@ -114,9 +138,30 @@ export default class extends Generator {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log('Installing Storybook...');
+        const versionsRaw = execSync('npm view storybook versions --json', {
+          encoding: 'utf-8',
+        });
+        const versions = JSON.parse(versionsRaw);
+  
+        // Filter for stable 8.4.x versions (exclude alpha/beta)
+        const stableVersions = versions
+          .filter(version => version.startsWith('8.4.'))
+          .filter(version => !version.includes('-')); // Exclude pre-releases like -alpha or -beta
+  
+        // Sort descending and get the latest
+        const latest84 = stableVersions.sort((a, b) => (a > b ? -1 : 1))[0];
+  
+        if (!latest84) {
+          throw new Error('No stable 8.4.x versions found.');
+        }
+  
+        // Log the chosen version (optional)
+        this.log(`Latest stable 8.4 version: ${latest84}`);
+  
+        // Use `this.spawnCommandSync` with the selected version
         this.spawnCommandSync('npx', [
           '-y',
-          'storybook@^8.4',
+          `storybook@${latest84}`,
           'init',
           '--no-dev',
         ]);

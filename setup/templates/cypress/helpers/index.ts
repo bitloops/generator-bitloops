@@ -11,6 +11,13 @@ export const isOutOfBounds = (inRect: DOMRect, outRect: DOMRect): boolean => {
   return isOut;
 };
 
+export const isOutOfHorizontalBounds = (inRect: DOMRect, outRect: DOMRect): boolean => {
+  const isOut =
+    inRect.left < outRect.left ||
+    inRect.right > outRect.right;
+  return isOut;
+};
+
 export const hasHorizontalScroll = (document: Document): boolean => {
   const scrollingElement = document.scrollingElement;
   if (!scrollingElement) {
