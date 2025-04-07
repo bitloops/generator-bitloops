@@ -119,7 +119,7 @@ export default class extends Generator {
 
       this.log('Installing Next.js...');
       const patchPackages = ''; //'next@14 react@18 react-dom@18';
-      const additionalPackages = `react-tooltip ${patchPackages}`;
+      const additionalPackages = `react-tooltip ${patchPackages} class-variance-authority tailwind-merge`;
       await new Promise((resolve, error) => {
         exec(
           `npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(
