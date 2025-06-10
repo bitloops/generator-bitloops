@@ -96,12 +96,12 @@ export default class extends Generator {
 
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
-      const createNextAppCommand = ['-y', 'create-next-app@14.2.29'];
+      const createNextAppCommand = ['-y', 'create-next-app@15.3.3'];
       createNextAppCommand.push(toKebabCase(this.options.project)); // Use the project name for the directory
       createNextAppCommand.push('--app');
       createNextAppCommand.push('--empty');
       createNextAppCommand.push('--src-dir');
-      // createNextAppCommand.push('--turbopack'); when we go to Next.js 15
+      createNextAppCommand.push('--turbopack'); // when we go to Next.js 15
       createNextAppCommand.push('--import-alias');
       createNextAppCommand.push('@/*');
       createNextAppCommand.push('--use-npm');
@@ -215,11 +215,6 @@ export default class extends Generator {
         } catch (err) {
           console.error('Error deleting sample stories directory:', err);
         }
-        fs.unlinkSync(this.destinationPath('tailwind.config.ts'));
-        this.fs.copyTpl(
-          this.templatePath('tailwind.config.ts'),
-          this.destinationPath('tailwind.config.ts')
-        );
       }
 
       if (this.options.cypress) {
