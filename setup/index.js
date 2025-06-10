@@ -96,7 +96,7 @@ export default class extends Generator {
 
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
-      const createNextAppCommand = ['-y', 'create-next-app@14.2.16'];
+      const createNextAppCommand = ['-y', 'create-next-app@14.2.29'];
       createNextAppCommand.push(toKebabCase(this.options.project)); // Use the project name for the directory
       createNextAppCommand.push('--app');
       createNextAppCommand.push('--empty');
@@ -142,28 +142,30 @@ export default class extends Generator {
           encoding: 'utf-8',
         });
         const versions = JSON.parse(versionsRaw);
-  
-        // Filter for stable 8.4.x versions (exclude alpha/beta)
+
+        // Filter for stable 9.0.x versions (exclude alpha/beta)
         const stableVersions = versions
-          .filter(version => version.startsWith('8.4.'))
+          .filter(version => version.startsWith('9.0.'))
           .filter(version => !version.includes('-')); // Exclude pre-releases like -alpha or -beta
-  
+
         // Sort descending and get the latest
-        const latest84 = stableVersions.sort((a, b) => (a > b ? -1 : 1))[0];
-  
-        if (!latest84) {
-          throw new Error('No stable 8.4.x versions found.');
+        const latest90 = stableVersions.sort((a, b) => (a > b ? -1 : 1))[0];
+
+        if (!latest90) {
+          throw new Error('No stable 9.0.x versions found.');
         }
-  
+
         // Log the chosen version (optional)
-        this.log(`Latest stable 8.4 version: ${latest84}`);
-  
+        this.log(`Latest stable 9.0 version: ${latest90}`);
+
         // Use `this.spawnCommandSync` with the selected version
         this.spawnCommandSync('npx', [
           '-y',
-          `storybook@${latest84}`,
+          `storybook@${latest90}`,
           'init',
           '--no-dev',
+          '--yes', // Skip all prompts
+          '--type', 'nextjs', // Specify Next.js as the framework
         ]);
         this.log('Storybook installed!');
         // if (this.options.tailwind && this.options.storybook) {
