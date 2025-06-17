@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createEnv } from 'yeoman-environment';
-import npm from './package.json' assert { type: 'json' };
+import npm from './package.json' with { type: 'json' };
 
 console.log(`generator-bitloops v${npm.version}`);
 
@@ -19,7 +19,7 @@ const env = createEnv();
 (async () => {
   // Dynamically import the subgenerator path
   const generatorPath = await import(`./${subgenerator}/index.js`);
-  
+
   // Register your generator
   env.register(generatorPath.default, `bitloops:${subgenerator}`);
 
