@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { spawnSync } from 'child_process';
 import { exec, execSync } from 'child_process';
 import Generator from 'yeoman-generator';
 import path from 'path';
@@ -7,6 +8,8 @@ import { fileURLToPath } from 'url';
 // Convert `import.meta.url` to a path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const DOT = '.';
 
 function isKebabCase(str) {
   // Check if the string is empty
@@ -37,6 +40,12 @@ function toKebabCase(str) {
     .map((word) => word.toLowerCase())
     .filter((word) => word.length > 0) // Remove empty words
     .join('-');
+}
+
+function deleteFileIfExists(filePath) {
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
 }
 
 export default class extends Generator {
@@ -149,7 +158,16 @@ export default class extends Generator {
           .filter(version => !version.includes('-')); // Exclude pre-releases like -alpha or -beta
 
         // Sort descending and get the latest
-        const latest90 = stableVersions.sort((a, b) => (a > b ? -1 : 1))[0];
+        const latest90 = stableVersions
+          .sort((a, b) => {
+            // Split version strings like '9.0.9' into [9, 0, 9]
+            const aParts = a.split(DOT).map(Number);
+            const bParts = b.split(DOT).map(Number);
+            // Compare major, then minor, then patch
+            if (aParts[0] !== bParts[0]) return bParts[0] - aParts[0];
+            if (aParts[1] !== bParts[1]) return bParts[1] - aParts[1];
+            return bParts[2] - aParts[2];
+          })[0];
 
         if (!latest90) {
           throw new Error('No stable 9.0.x versions found.');
@@ -158,16 +176,22 @@ export default class extends Generator {
         // Log the chosen version (optional)
         this.log(`Latest stable 9.0 version: ${latest90}`);
 
-        // Use `this.spawnCommandSync` with the selected version
-        this.spawnCommandSync('npx', [
+        spawnSync('npx', [
           '-y',
           `storybook@${latest90}`,
           'init',
           '--no-dev',
           '--yes', // Skip all prompts
           '--type', 'nextjs', // Specify Next.js as the framework
-        ]);
+        ], { stdio: 'inherit', cwd: this.destinationRoot() });
         this.log('Storybook installed!');
+        this.log('Installing @storybook/react-vite for Vite builder support...');
+        spawnSync('npm', [
+          'install',
+          '--save-dev',
+          '@storybook/react-vite'
+        ], { stdio: 'inherit', cwd: this.destinationRoot() });
+        this.log('@storybook/react-vite installed!');
         // if (this.options.tailwind && this.options.storybook) {
         // Tailwind CSS specific setup for older versions of Storybook
         //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
@@ -179,16 +203,16 @@ export default class extends Generator {
       // Conditionally add Cypress
       if (this.options.cypress) {
         this.log('Installing Cypress...');
-        this.spawnCommandSync('npm', ['install', '--save-dev', 'cypress']);
+        spawnSync('npm', ['install', '--save-dev', 'cypress'], { stdio: 'inherit', cwd: this.destinationRoot() });
         this.log('Cypress installed!');
         if (this.options.bitloops) {
-          this.spawnCommandSync('npm', [
+          spawnSync('npm', [
             'install',
             '--save-dev',
             'mochawesome',
             'mochawesome-merge',
             'mochawesome-report-generator',
-          ]);
+          ], { stdio: 'inherit', cwd: this.destinationRoot() });
         }
       }
     };
@@ -198,7 +222,7 @@ export default class extends Generator {
       if (this.options.storybook) {
         this.log('Making Storybook changes...');
         if (this.options.tailwind) {
-          fs.unlinkSync(this.destinationPath('.storybook/preview.ts'));
+          deleteFileIfExists(this.destinationPath('.storybook/preview.ts'));
           this.log('Setting up Tailwind CSS with Storybook...');
           this.fs.copyTpl(
             this.templatePath('storybook.preview.ts'),
@@ -225,13 +249,13 @@ export default class extends Generator {
         );
       }
 
-      fs.unlinkSync(this.destinationPath('src/app/page.tsx'));
+      deleteFileIfExists(this.destinationPath('src/app/page.tsx'));
       this.fs.copyTpl(
         this.templatePath('next.app.page.tsx'),
         this.destinationPath('src/app/page.tsx')
       );
 
-      fs.unlinkSync(this.destinationPath('src/app/layout.tsx'));
+      deleteFileIfExists(this.destinationPath('src/app/layout.tsx'));
       this.fs.copyTpl(
         this.templatePath('next.app.layout.tsx'),
         this.destinationPath('src/app/layout.tsx'),
@@ -239,7 +263,7 @@ export default class extends Generator {
       );
 
       this.log('Adding Meyer reset in global.css...');
-      fs.unlinkSync(this.destinationPath('src/app/globals.css'));
+      deleteFileIfExists(this.destinationPath('src/app/globals.css'));
       this.fs.copyTpl(
         this.templatePath('globals.css'),
         this.destinationPath('src/app/globals.css')
@@ -276,11 +300,11 @@ export default class extends Generator {
           const path = 'cypress/helpers/index.ts';
           this.fs.copyTpl(this.templatePath(path), this.destinationPath(path));
         }
-        this.spawnCommandSync('npm', [
+        spawnSync('npm', [
           'install',
           '--save-dev',
           'react-aria-components',
-        ]);
+        ], { stdio: 'inherit', cwd: this.destinationRoot() });
       }
     };
 
