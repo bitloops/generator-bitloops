@@ -170,32 +170,16 @@ export default class extends Generator {
           })[0];
 
         if (!latest90) {
-          throw new Error('No stable 9.0.x versions found.');
+          throw new Error('No stable 9.0.x versions found.'); 
         }
 
-        // Log the chosen version (optional)
         this.log(`Latest stable 9.0 version: ${latest90}`);
-
-        spawnSync('npx', [
-          '-y',
-          `storybook@${latest90}`,
-          'init',
-          '--no-dev',
-          '--yes', // Skip all prompts
-          '--type', 'nextjs', // Specify Next.js as the framework
-        ], { stdio: 'inherit', cwd: this.destinationRoot() });
+        //Initializing sb with nextjs+vite
+        spawnSync('npx', ['-y', 'storybook@latest', 'init', '--no-dev', '--yes', '--type', 'nextjs', '--builder', 'vite'], { stdio: 'inherit', cwd: this.destinationRoot() });
         this.log('Storybook installed!');
-        this.log('Installing @storybook/react-vite for Vite builder support...');
-        spawnSync('npm', [
-          'install',
-          '--save-dev',
-          '@storybook/react-vite'
-        ], { stdio: 'inherit', cwd: this.destinationRoot() });
-        this.log('@storybook/react-vite installed!');
-        // if (this.options.tailwind && this.options.storybook) {
-        // Tailwind CSS specific setup for older versions of Storybook
-        //   this.spawnCommandSync('npx', ['storybook@latest', 'add', '@storybook/addon-styling-webpack']);
-        // }
+        //Verifies the correct nextjs-vite framework is used
+        spawnSync('npm', ['install', '--save-dev', '@storybook/nextjs-vite@^9'], { stdio: 'inherit', cwd: this.destinationRoot() });
+        this.log('@storybook/nextjs-vite installed!');
       }
     };
 
