@@ -1,6 +1,6 @@
 {
   "name": "generator-bitloops",
-  "version": "0.3.19",
+  "version": "10.3.0",
   "description": "Next.js with TypeScript, Tailwind, Storybook and Cypress generator by Bitloops",
   "license": "MIT",
   "author": "Bitloops S.A.",
@@ -27,6 +27,7 @@
     "yeoman-generator"
   ],
   "dependencies": {
+    "generator-bitloops": "link:../../../Library/pnpm/global/5/node_modules/generator-bitloops",
     "yeoman-environment": "^4.4.3",
     "yeoman-generator": "^7.3.3"
   }
