@@ -27,7 +27,6 @@
     "yeoman-generator"
   ],
   "dependencies": {
-    "generator-bitloops": "link:../../../Library/pnpm/global/5/node_modules/generator-bitloops",
     "yeoman-environment": "^4.4.3",
     "yeoman-generator": "^7.3.3"
   }
