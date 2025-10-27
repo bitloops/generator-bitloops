@@ -10,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DOT = '.';
+const PLATFORM_NEXT_FOLDER = 'platform-next';
+const PLATFORM_NEXT_SRC_FOLDER = `${PLATFORM_NEXT_FOLDER}/src`;
 
 function isKebabCase(str) {
   // Check if the string is empty
@@ -251,6 +253,27 @@ export default class extends Generator {
       this.fs.copyTpl(
         this.templatePath('globals.css'),
         this.destinationPath('src/app/globals.css')
+      );
+
+      const platformNextIndexPath = `${PLATFORM_NEXT_SRC_FOLDER}/index.ts`;
+      deleteFileIfExists(this.destinationPath(platformNextIndexPath));
+      this.fs.copyTpl(
+        this.templatePath(platformNextIndexPath),
+        this.destinationPath(platformNextIndexPath)
+      );
+
+      const platformNextImgPath = `${PLATFORM_NEXT_SRC_FOLDER}/Img.tsx`;
+      deleteFileIfExists(this.destinationPath(platformNextImgPath));
+      this.fs.copyTpl(
+        this.templatePath(platformNextImgPath),
+        this.destinationPath(platformNextImgPath)
+      );
+
+      const platformNextTypesPath = `${PLATFORM_NEXT_SRC_FOLDER}/types.ts`;
+      deleteFileIfExists(this.destinationPath(platformNextTypesPath));
+      this.fs.copyTpl(
+        this.templatePath(platformNextTypesPath),
+        this.destinationPath(platformNextTypesPath)
       );
 
       if (this.options.bitloops) {
