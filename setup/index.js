@@ -105,6 +105,12 @@ export default class extends Generator {
       default: false,
     });
 
+    this.option('primitives', {
+      type: Boolean,
+      description: 'Add primitives support',
+      default: false,
+    });
+
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
       const createNextAppCommand = ['-y', 'create-next-app@15.3.3'];
@@ -203,6 +209,36 @@ export default class extends Generator {
       }
     };
 
+    this.installPrimitives = function () {
+      // Conditionally add Primitives
+      if (this.options.primitives) {
+        this.log('Installing Primitives...');
+        
+        const platformNextIndexPath = `${PLATFORM_NEXT_SRC_FOLDER}/index.ts`;
+        deleteFileIfExists(this.destinationPath(platformNextIndexPath));
+        this.fs.copyTpl(
+          this.templatePath(platformNextIndexPath),
+          this.destinationPath(platformNextIndexPath)
+        );
+
+        const platformNextImgPath = `${PLATFORM_NEXT_SRC_FOLDER}/Img.tsx`;
+        deleteFileIfExists(this.destinationPath(platformNextImgPath));
+        this.fs.copyTpl(
+          this.templatePath(platformNextImgPath),
+          this.destinationPath(platformNextImgPath)
+        );
+
+        const platformNextTypesPath = `${PLATFORM_NEXT_SRC_FOLDER}/types.ts`;
+        deleteFileIfExists(this.destinationPath(platformNextTypesPath));
+        this.fs.copyTpl(
+          this.templatePath(platformNextTypesPath),
+          this.destinationPath(platformNextTypesPath)
+        );
+
+        this.log('Primitives installed!');
+      }
+    };
+
     this.patchFiles = async function () {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
@@ -253,27 +289,6 @@ export default class extends Generator {
       this.fs.copyTpl(
         this.templatePath('globals.css'),
         this.destinationPath('src/app/globals.css')
-      );
-
-      const platformNextIndexPath = `${PLATFORM_NEXT_SRC_FOLDER}/index.ts`;
-      deleteFileIfExists(this.destinationPath(platformNextIndexPath));
-      this.fs.copyTpl(
-        this.templatePath(platformNextIndexPath),
-        this.destinationPath(platformNextIndexPath)
-      );
-
-      const platformNextImgPath = `${PLATFORM_NEXT_SRC_FOLDER}/Img.tsx`;
-      deleteFileIfExists(this.destinationPath(platformNextImgPath));
-      this.fs.copyTpl(
-        this.templatePath(platformNextImgPath),
-        this.destinationPath(platformNextImgPath)
-      );
-
-      const platformNextTypesPath = `${PLATFORM_NEXT_SRC_FOLDER}/types.ts`;
-      deleteFileIfExists(this.destinationPath(platformNextTypesPath));
-      this.fs.copyTpl(
-        this.templatePath(platformNextTypesPath),
-        this.destinationPath(platformNextTypesPath)
       );
 
       if (this.options.bitloops) {
@@ -361,6 +376,7 @@ export default class extends Generator {
     await this.installNextJS();
     this.installStorybook();
     this.installCypress();
+    this.installPrimitives();
     await this.patchFiles();
     if (this.options.git) {
       await this.commitChanges();

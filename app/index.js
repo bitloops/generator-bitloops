@@ -11,6 +11,7 @@ export default class extends Generator {
     this.option('tailwind'); // This method adds support for a `--tailwind` flag
     this.option('storybook'); // This method adds support for a `--storybook` flag
     this.option('cypress'); // This method adds support for a `--cypress` flag
+    this.option('primitives'); // This method adds support for a `--primitives` flag
   }
 
   message() {
