@@ -291,6 +291,36 @@ export default class extends Generator {
         this.destinationPath('src/app/globals.css')
       );
 
+      if (this.options.typescript) {
+        this.log('Updating tsconfig.json paths...');
+        const tsconfigPath = this.destinationPath('tsconfig.json');
+        if (this.fs.exists(tsconfigPath)) {
+          const tsconfigContent = this.fs.read(tsconfigPath);
+          const tsconfig = JSON.parse(tsconfigContent);
+          
+          // Initialize compilerOptions if it doesn't exist
+          if (!tsconfig.compilerOptions) {
+            tsconfig.compilerOptions = {};
+          }
+          
+          // Initialize paths if it doesn't exist
+          if (!tsconfig.compilerOptions.paths) {
+            tsconfig.compilerOptions.paths = {};
+          }
+          
+          // Add or merge the path aliases
+          tsconfig.compilerOptions.paths = {
+            ...tsconfig.compilerOptions.paths,
+            "@/primitives": ["./platform-next/src"],
+            "@/assets": ["./src/assets"]
+          };
+          
+          deleteFileIfExists(tsconfigPath);
+          this.fs.write(tsconfigPath, JSON.stringify(tsconfig, null, 2) + '\n');
+          this.log('tsconfig.json paths updated!');
+        }
+      }
+
       if (this.options.bitloops) {
         this.log('Adding Bitloops support components...');
         const unsupportedPath =
