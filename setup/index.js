@@ -113,12 +113,11 @@ export default class extends Generator {
 
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
-      const createNextAppCommand = ['-y', 'create-next-app@15.3.3'];
+      const createNextAppCommand = ['-y', 'create-next-app@latest'];
       createNextAppCommand.push(toKebabCase(this.options.project)); // Use the project name for the directory
       createNextAppCommand.push('--app');
       createNextAppCommand.push('--empty');
       createNextAppCommand.push('--src-dir');
-      createNextAppCommand.push('--turbopack'); // when we go to Next.js 15
       createNextAppCommand.push('--import-alias');
       createNextAppCommand.push('@/*');
       createNextAppCommand.push('--use-npm');
