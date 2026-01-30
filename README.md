@@ -6,4 +6,4 @@ Nonetheless, you can use it independently to setup your next Next.js project wit
 
 ## How to run it
 
-`npx -y generator-bitloops setup --project="Your Project Name" --nextjs --typescript --tailwind --storybook --cypress`
+`npx -y generator-bitloops setup --project="Your Project Name" --nextjs --i18n --typescript --tailwind --storybook --cypress`
