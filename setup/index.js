@@ -128,7 +128,7 @@ export default class extends Generator {
       createNextAppCommand.push('--src-dir');
       createNextAppCommand.push('--import-alias');
       createNextAppCommand.push('@/*');
-      createNextAppCommand.push('--use-npm');
+      createNextAppCommand.push('--use-pnpm');
       createNextAppCommand.push('--eslint');
 
       if (this.options.typescript) {
@@ -148,7 +148,7 @@ export default class extends Generator {
         exec(
           `npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(
             this.options.project,
-          )} && npm install ${additionalPackages}`,
+          )} && pnpm add ${additionalPackages}`,
         ).on('exit', (code) => {
           this.destinationRoot(
             this.destinationPath(toKebabCase(this.options.project)),
@@ -207,8 +207,8 @@ export default class extends Generator {
         this.log('Storybook installed!');
         // Verifies the correct nextjs-vite framework is used
         spawnSync(
-          'npm',
-          ['install', '--save-dev', '@storybook/nextjs-vite@^10'],
+          'pnpm',
+          ['add', '-D', '@storybook/nextjs-vite@^10'],
           { stdio: 'inherit', cwd: this.destinationRoot() },
         );
         this.log('@storybook/nextjs-vite installed!');
@@ -219,17 +219,17 @@ export default class extends Generator {
       // Conditionally add Cypress
       if (this.options.cypress) {
         this.log('Installing Cypress...');
-        spawnSync('npm', ['install', '--save-dev', 'cypress'], {
+        spawnSync('pnpm', ['add', '-D', 'cypress'], {
           stdio: 'inherit',
           cwd: this.destinationRoot(),
         });
         this.log('Cypress installed!');
         if (this.options.bitloops) {
           spawnSync(
-            'npm',
+            'pnpm',
             [
-              'install',
-              '--save-dev',
+              'add',
+              '-D',
               'mochawesome',
               'mochawesome-merge',
               'mochawesome-report-generator',
@@ -245,8 +245,8 @@ export default class extends Generator {
       if (this.options.i18n) {
         this.log('Installing i18n packages...');
         spawnSync(
-          'npm',
-          ['install', 'i18next', 'i18next-icu', 'react-i18next'],
+          'pnpm',
+          ['add', 'i18next', 'i18next-icu', 'react-i18next'],
           { stdio: 'inherit', cwd: this.destinationRoot() },
         );
         this.log('i18n packages installed!');
@@ -376,7 +376,7 @@ export default class extends Generator {
           const path = 'cypress/helpers/index.ts';
           this.fs.copyTpl(this.templatePath(path), this.destinationPath(path));
         }
-        spawnSync('npm', ['install', '--save-dev', 'react-aria-components'], {
+        spawnSync('pnpm', ['add', '-D', 'react-aria-components'], {
           stdio: 'inherit',
           cwd: this.destinationRoot(),
         });
@@ -445,9 +445,9 @@ export default class extends Generator {
     );
     this.log('');
     this.log('Use the following commands to start:');
-    this.log('- `npm run dev` to start the Next.js app.');
+    this.log('- `pnpm dev` to start the Next.js app.');
     if (this.options.storybook)
-      this.log('- `npm run storybook` to start Storybook.');
+      this.log('- `pnpm storybook` to start Storybook.');
     if (this.options.cypress)
       this.log('- `npx cypress open --e2e --browser chrome` to open Cypress.');
     if (this.options.cypress)
