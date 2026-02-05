@@ -118,6 +118,12 @@ export default class extends Generator {
       default: false,
     });
 
+    this.option('baseUi', {
+      type: Boolean,
+      description: 'Add Base UI React components (@base-ui/react)',
+      default: false,
+    });
+
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
       const createNextAppCommand = ['-y', 'create-next-app@latest'];
@@ -250,6 +256,19 @@ export default class extends Generator {
           { stdio: 'inherit', cwd: this.destinationRoot() },
         );
         this.log('i18n packages installed!');
+      }
+    };
+
+    this.installBaseUi = function () {
+      // Conditionally add Base UI
+      if (this.options.baseUi) {
+        this.log('Installing Base UI...');
+        spawnSync(
+          'pnpm',
+          ['add', '@base-ui/react@^1.1.0'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('Base UI installed!');
       }
     };
 
@@ -429,6 +448,7 @@ export default class extends Generator {
     await this.installNextJS();
     this.installCypress();
     this.installI18n();
+    this.installBaseUi();
     this.installPrimitives();
     this.installStorybook();
     await this.patchFiles();
