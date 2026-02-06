@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DOT = '.';
+const STORYBOOK_FOLDER = '.storybook';
 const PLATFORM_NEXT_FOLDER = 'platform-next';
 const PLATFORM_NEXT_SRC_FOLDER = `${PLATFORM_NEXT_FOLDER}/src`;
 const PLATFORM_VITE_FOLDER = 'platform-vite';
@@ -262,11 +263,10 @@ export default class extends Generator {
         );
         this.log('Storybook installed!');
         // Verifies the correct nextjs-vite framework is used
-        spawnSync(
-          'pnpm',
-          ['add', '-D', '@storybook/nextjs-vite@^10'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '-D', '@storybook/nextjs-vite@^10'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('@storybook/nextjs-vite installed!');
       }
     };
@@ -300,11 +300,10 @@ export default class extends Generator {
       // Conditionally add i18n packages
       if (this.options.i18n) {
         this.log('Installing i18n packages...');
-        spawnSync(
-          'pnpm',
-          ['add', 'i18next', 'i18next-icu', 'react-i18next'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', 'i18next', 'i18next-icu', 'react-i18next'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('i18n packages installed!');
       }
     };
@@ -313,11 +312,10 @@ export default class extends Generator {
       // Conditionally add Base UI
       if (this.options.baseUi) {
         this.log('Installing Base UI...');
-        spawnSync(
-          'pnpm',
-          ['add', '@base-ui/react@^1.1.0'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '@base-ui/react@^1.1.0'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('Base UI installed!');
       }
     };
@@ -326,11 +324,10 @@ export default class extends Generator {
       // Conditionally add Redux Toolkit and React Redux
       if (this.options.redux) {
         this.log('Installing Redux Toolkit and React Redux...');
-        spawnSync(
-          'pnpm',
-          ['add', '@reduxjs/toolkit', 'react-redux'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '@reduxjs/toolkit', 'react-redux'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('Redux Toolkit and React Redux installed!');
       }
     };
@@ -366,11 +363,10 @@ export default class extends Generator {
       // Conditionally add web-vitals
       if (this.options.webVitals) {
         this.log('Installing web-vitals...');
-        spawnSync(
-          'pnpm',
-          ['add', 'web-vitals'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', 'web-vitals'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('web-vitals installed!');
       }
     };
@@ -379,11 +375,10 @@ export default class extends Generator {
       // Conditionally add Zod
       if (this.options.zod) {
         this.log('Installing Zod...');
-        spawnSync(
-          'pnpm',
-          ['add', 'zod'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', 'zod'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('Zod installed!');
       }
     };
@@ -392,11 +387,10 @@ export default class extends Generator {
       // Conditionally add @next/bundle-analyzer
       if (this.options.bundleAnalyzer) {
         this.log('Installing @next/bundle-analyzer...');
-        spawnSync(
-          'pnpm',
-          ['add', '-D', '@next/bundle-analyzer'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '-D', '@next/bundle-analyzer'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('@next/bundle-analyzer installed!');
       }
     };
@@ -405,11 +399,10 @@ export default class extends Generator {
       // Conditionally add react-icons
       if (this.options.reactIcons) {
         this.log('Installing react-icons...');
-        spawnSync(
-          'pnpm',
-          ['add', 'react-icons'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', 'react-icons'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('react-icons installed!');
       }
     };
@@ -418,17 +411,15 @@ export default class extends Generator {
       // Conditionally add Mock Service Worker
       if (this.options.msw) {
         this.log('Installing Mock Service Worker (MSW)...');
-        spawnSync(
-          'pnpm',
-          ['add', '-D', 'msw'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '-D', 'msw'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         // Initialize MSW
-        spawnSync(
-          'npx',
-          ['msw', 'init', 'public/', '--save'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('npx', ['msw', 'init', 'public/', '--save'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('MSW installed!');
       }
     };
@@ -437,11 +428,10 @@ export default class extends Generator {
       // Conditionally add babel-plugin-react-compiler
       if (this.options.reactCompiler) {
         this.log('Installing babel-plugin-react-compiler...');
-        spawnSync(
-          'pnpm',
-          ['add', '-D', 'babel-plugin-react-compiler'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', '-D', 'babel-plugin-react-compiler'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('babel-plugin-react-compiler installed!');
       }
     };
@@ -450,11 +440,10 @@ export default class extends Generator {
       // Add intl-messageformat when i18n is enabled
       if (this.options.i18n) {
         this.log('Installing intl-messageformat...');
-        spawnSync(
-          'pnpm',
-          ['add', 'intl-messageformat'],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        spawnSync('pnpm', ['add', 'intl-messageformat'], {
+          stdio: 'inherit',
+          cwd: this.destinationRoot(),
+        });
         this.log('intl-messageformat installed!');
       }
     };
@@ -508,14 +497,25 @@ export default class extends Generator {
       // Conditionally initialize Storybook
       if (this.options.storybook) {
         this.log('Making Storybook changes...');
-        if (this.options.tailwind) {
-          deleteFileIfExists(this.destinationPath('.storybook/preview.ts'));
-          this.log('Setting up Tailwind CSS with Storybook...');
+
+        // Copy .storybook template files
+        const storybookFiles = [
+          `${STORYBOOK_FOLDER}/main.ts`,
+          `${STORYBOOK_FOLDER}/preview.tsx`,
+          `${STORYBOOK_FOLDER}/vitest.setup.ts`,
+        ];
+
+        // Delete .storybook/preview.ts if it exists (generated by storybook init)
+        deleteFileIfExists(this.destinationPath(`${STORYBOOK_FOLDER}/preview.ts`));
+
+        storybookFiles.forEach((filePath) => {
+          deleteFileIfExists(this.destinationPath(filePath));
           this.fs.copyTpl(
-            this.templatePath('storybook.preview.ts'),
-            this.destinationPath('.storybook/preview.ts'),
+            this.templatePath(filePath),
+            this.destinationPath(filePath),
           );
-        }
+        });
+
         this.log('Removing default Storybook stories...');
         try {
           fs.rmSync(this.destinationPath('src/stories'), {
