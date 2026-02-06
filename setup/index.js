@@ -124,6 +124,54 @@ export default class extends Generator {
       default: false,
     });
 
+    this.option('redux', {
+      type: Boolean,
+      description: 'Add Redux Toolkit and React Redux for state management',
+      default: false,
+    });
+
+    this.option('vitest', {
+      type: Boolean,
+      description: 'Add Vitest testing framework with coverage and UI',
+      default: false,
+    });
+
+    this.option('webVitals', {
+      type: Boolean,
+      description: 'Add web-vitals for performance monitoring',
+      default: false,
+    });
+
+    this.option('zod', {
+      type: Boolean,
+      description: 'Add Zod for schema validation',
+      default: false,
+    });
+
+    this.option('bundleAnalyzer', {
+      type: Boolean,
+      description: 'Add @next/bundle-analyzer for bundle analysis',
+      default: false,
+    });
+
+    this.option('reactIcons', {
+      type: Boolean,
+      description: 'Add react-icons library',
+      default: false,
+    });
+
+    this.option('msw', {
+      type: Boolean,
+      description: 'Add Mock Service Worker (MSW) for API mocking',
+      default: false,
+    });
+
+    this.option('reactCompiler', {
+      type: Boolean,
+      description: 'Add babel-plugin-react-compiler',
+      default: false,
+    });
+
     this.installNextJS = async function () {
       // Clone Next.js template with Tailwind if specified, using the project name
       const createNextAppCommand = ['-y', 'create-next-app@latest'];
@@ -272,6 +320,143 @@ export default class extends Generator {
       }
     };
 
+    this.installRedux = function () {
+      // Conditionally add Redux Toolkit and React Redux
+      if (this.options.redux) {
+        this.log('Installing Redux Toolkit and React Redux...');
+        spawnSync(
+          'pnpm',
+          ['add', '@reduxjs/toolkit', 'react-redux'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('Redux Toolkit and React Redux installed!');
+      }
+    };
+
+    this.installVitest = function () {
+      // Conditionally add Vitest and related testing packages
+      if (this.options.vitest) {
+        this.log('Installing Vitest and testing packages...');
+        spawnSync(
+          'pnpm',
+          [
+            'add',
+            '-D',
+            'vitest',
+            '@vitest/ui',
+            '@vitest/coverage-v8',
+            '@vitest/browser-playwright',
+            '@testing-library/react',
+            '@testing-library/jest-dom',
+            '@testing-library/user-event',
+            '@vitejs/plugin-react',
+            'vite',
+            'jsdom',
+            'playwright',
+          ],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('Vitest and testing packages installed!');
+      }
+    };
+
+    this.installWebVitals = function () {
+      // Conditionally add web-vitals
+      if (this.options.webVitals) {
+        this.log('Installing web-vitals...');
+        spawnSync(
+          'pnpm',
+          ['add', 'web-vitals'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('web-vitals installed!');
+      }
+    };
+
+    this.installZod = function () {
+      // Conditionally add Zod
+      if (this.options.zod) {
+        this.log('Installing Zod...');
+        spawnSync(
+          'pnpm',
+          ['add', 'zod'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('Zod installed!');
+      }
+    };
+
+    this.installBundleAnalyzer = function () {
+      // Conditionally add @next/bundle-analyzer
+      if (this.options.bundleAnalyzer) {
+        this.log('Installing @next/bundle-analyzer...');
+        spawnSync(
+          'pnpm',
+          ['add', '-D', '@next/bundle-analyzer'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('@next/bundle-analyzer installed!');
+      }
+    };
+
+    this.installReactIcons = function () {
+      // Conditionally add react-icons
+      if (this.options.reactIcons) {
+        this.log('Installing react-icons...');
+        spawnSync(
+          'pnpm',
+          ['add', 'react-icons'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('react-icons installed!');
+      }
+    };
+
+    this.installMsw = function () {
+      // Conditionally add Mock Service Worker
+      if (this.options.msw) {
+        this.log('Installing Mock Service Worker (MSW)...');
+        spawnSync(
+          'pnpm',
+          ['add', '-D', 'msw'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        // Initialize MSW
+        spawnSync(
+          'npx',
+          ['msw', 'init', 'public/', '--save'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('MSW installed!');
+      }
+    };
+
+    this.installReactCompiler = function () {
+      // Conditionally add babel-plugin-react-compiler
+      if (this.options.reactCompiler) {
+        this.log('Installing babel-plugin-react-compiler...');
+        spawnSync(
+          'pnpm',
+          ['add', '-D', 'babel-plugin-react-compiler'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('babel-plugin-react-compiler installed!');
+      }
+    };
+
+    this.installIntlMessageFormat = function () {
+      // Add intl-messageformat when i18n is enabled
+      if (this.options.i18n) {
+        this.log('Installing intl-messageformat...');
+        spawnSync(
+          'pnpm',
+          ['add', 'intl-messageformat'],
+          { stdio: 'inherit', cwd: this.destinationRoot() },
+        );
+        this.log('intl-messageformat installed!');
+      }
+    };
+
     this.installPrimitives = function () {
       // Conditionally add Primitives
       if (this.options.primitives) {
@@ -402,6 +587,39 @@ export default class extends Generator {
       }
     };
 
+    this.patchPackageJsonScripts = async function () {
+      this.log('Patching package.json scripts...');
+      const packageJsonPath = this.destinationPath('package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+      // Add vitest scripts if vitest is enabled
+      if (this.options.vitest) {
+        packageJson.scripts.test = 'vitest';
+        packageJson.scripts['test:ui'] = 'vitest --ui';
+        packageJson.scripts['test:coverage'] = 'vitest run --coverage';
+      }
+
+      // Add type-check script if typescript is enabled
+      if (this.options.typescript) {
+        packageJson.scripts['type-check'] = 'tsc --noEmit';
+      }
+
+      // Add analyze script if bundleAnalyzer is enabled
+      if (this.options.bundleAnalyzer) {
+        packageJson.scripts.analyze = 'ANALYZE=true next build';
+      }
+
+      // Add msw configuration if msw is enabled
+      if (this.options.msw) {
+        packageJson.msw = {
+          workerDirectory: ['public'],
+        };
+      }
+
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+      this.log('package.json scripts patched!');
+    };
+
     this.commitChanges = async function () {
       this.log('Committing changes to git...');
       await new Promise((resolve) => {
@@ -448,10 +666,20 @@ export default class extends Generator {
     await this.installNextJS();
     this.installCypress();
     this.installI18n();
+    this.installIntlMessageFormat();
     this.installBaseUi();
+    this.installRedux();
+    this.installVitest();
+    this.installWebVitals();
+    this.installZod();
+    this.installBundleAnalyzer();
+    this.installReactIcons();
+    this.installMsw();
+    this.installReactCompiler();
     this.installPrimitives();
     this.installStorybook();
     await this.patchFiles();
+    await this.patchPackageJsonScripts();
     if (this.options.git) {
       await this.commitChanges();
     }
