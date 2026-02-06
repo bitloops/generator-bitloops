@@ -12,6 +12,8 @@ const __dirname = path.dirname(__filename);
 const DOT = '.';
 const PLATFORM_NEXT_FOLDER = 'platform-next';
 const PLATFORM_NEXT_SRC_FOLDER = `${PLATFORM_NEXT_FOLDER}/src`;
+const PLATFORM_VITE_FOLDER = 'platform-vite';
+const PLATFORM_VITE_SRC_FOLDER = `${PLATFORM_VITE_FOLDER}/src`;
 
 function isKebabCase(str) {
   // Check if the string is empty
@@ -462,26 +464,41 @@ export default class extends Generator {
       if (this.options.primitives) {
         this.log('Installing Primitives...');
 
-        const platformNextIndexPath = `${PLATFORM_NEXT_SRC_FOLDER}/index.ts`;
-        deleteFileIfExists(this.destinationPath(platformNextIndexPath));
-        this.fs.copyTpl(
-          this.templatePath(platformNextIndexPath),
-          this.destinationPath(platformNextIndexPath),
-        );
+        // Platform Next files
+        const platformNextFiles = [
+          `${PLATFORM_NEXT_SRC_FOLDER}/index.ts`,
+          `${PLATFORM_NEXT_SRC_FOLDER}/Img.tsx`,
+          `${PLATFORM_NEXT_SRC_FOLDER}/Link.tsx`,
+          `${PLATFORM_NEXT_SRC_FOLDER}/setup.ts`,
+          `${PLATFORM_NEXT_SRC_FOLDER}/router/index.ts`,
+          `${PLATFORM_NEXT_SRC_FOLDER}/router/useNextRouter.ts`,
+        ];
 
-        const platformNextImgPath = `${PLATFORM_NEXT_SRC_FOLDER}/Img.tsx`;
-        deleteFileIfExists(this.destinationPath(platformNextImgPath));
-        this.fs.copyTpl(
-          this.templatePath(platformNextImgPath),
-          this.destinationPath(platformNextImgPath),
-        );
+        platformNextFiles.forEach((filePath) => {
+          deleteFileIfExists(this.destinationPath(filePath));
+          this.fs.copyTpl(
+            this.templatePath(filePath),
+            this.destinationPath(filePath),
+          );
+        });
 
-        const platformNextTypesPath = `${PLATFORM_NEXT_SRC_FOLDER}/types.ts`;
-        deleteFileIfExists(this.destinationPath(platformNextTypesPath));
-        this.fs.copyTpl(
-          this.templatePath(platformNextTypesPath),
-          this.destinationPath(platformNextTypesPath),
-        );
+        // Platform Vite files
+        const platformViteFiles = [
+          `${PLATFORM_VITE_SRC_FOLDER}/index.ts`,
+          `${PLATFORM_VITE_SRC_FOLDER}/Img.tsx`,
+          `${PLATFORM_VITE_SRC_FOLDER}/Link.tsx`,
+          `${PLATFORM_VITE_SRC_FOLDER}/setup.ts`,
+          `${PLATFORM_VITE_SRC_FOLDER}/router/index.ts`,
+          `${PLATFORM_VITE_SRC_FOLDER}/router/useViteRouter.ts`,
+        ];
+
+        platformViteFiles.forEach((filePath) => {
+          deleteFileIfExists(this.destinationPath(filePath));
+          this.fs.copyTpl(
+            this.templatePath(filePath),
+            this.destinationPath(filePath),
+          );
+        });
 
         this.log('Primitives installed!');
       }

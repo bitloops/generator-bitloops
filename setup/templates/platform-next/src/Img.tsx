@@ -1,7 +1,8 @@
-'use client';
-import NextImage from 'next/image';
-import type { ImgProps } from './types';
+"use client";
+import NextImage from "next/image";
+import type { ImgProps } from "../../src/lib/types/primitives.types";
+
 export function Img(props: ImgProps) {
-  const { responsive, ...rest } = props;
+  const { ...rest } = props;
   return <NextImage {...rest} />;
 }
