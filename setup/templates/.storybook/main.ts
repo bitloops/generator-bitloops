@@ -23,7 +23,7 @@ const config: StorybookConfig = {
     if (config.resolve) {
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@/primitives': path.resolve(__dirname, '../platform-vite/src'),
+        '@primitives': path.resolve(__dirname, '../platform-vite/src'),
       };
     }
     return config;
