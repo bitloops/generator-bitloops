@@ -17,8 +17,8 @@ const PLATFORM_NEXT_FOLDER = 'platform-next';
 const PLATFORM_NEXT_SRC_FOLDER = `${PLATFORM_NEXT_FOLDER}/src`;
 const PLATFORM_VITE_FOLDER = 'platform-vite';
 const PLATFORM_VITE_SRC_FOLDER = `${PLATFORM_VITE_FOLDER}/src`;
-const LIB_TYPES_FOLDER = 'lib/types';
-const LIB_ROUTER_FOLDER = 'lib/router';
+const LIB_TYPES_FOLDER = 'src/lib/types';
+const LIB_ROUTER_FOLDER = 'src/lib/router';
 
 function isKebabCase(str) {
   // Check if the string is empty
@@ -291,17 +291,21 @@ export default class extends Generator {
 
         this.log(`Latest stable 10.x version: ${latest10}`);
         // Initializing storybook with nextjs+vite
-        runSync('npx', [
-          '-y',
-          `storybook@${latest10}`,
-          'init',
-          '--no-dev',
-          '--yes',
-          '--type',
-          'nextjs',
-          '--builder',
-          'vite',
-        ], { cwd: this.destinationRoot() });
+        runSync(
+          'npx',
+          [
+            '-y',
+            `storybook@${latest10}`,
+            'init',
+            '--no-dev',
+            '--yes',
+            '--type',
+            'nextjs',
+            '--builder',
+            'vite',
+          ],
+          { cwd: this.destinationRoot() },
+        );
         this.log('Storybook installed!');
         // Verifies the correct nextjs-vite framework is used
         runSync('pnpm', ['add', '-D', '@storybook/nextjs-vite@^10'], {
@@ -320,13 +324,17 @@ export default class extends Generator {
         });
         this.log('Cypress installed!');
         if (this.options.bitloops) {
-          runSync('pnpm', [
-            'add',
-            '-D',
-            'mochawesome',
-            'mochawesome-merge',
-            'mochawesome-report-generator',
-          ], { cwd: this.destinationRoot() });
+          runSync(
+            'pnpm',
+            [
+              'add',
+              '-D',
+              'mochawesome',
+              'mochawesome-merge',
+              'mochawesome-report-generator',
+            ],
+            { cwd: this.destinationRoot() },
+          );
         }
       }
     };
@@ -368,21 +376,25 @@ export default class extends Generator {
       // Conditionally add Vitest and related testing packages
       if (this.options.vitest) {
         this.log('Installing Vitest and testing packages...');
-        runSync('pnpm', [
-          'add',
-          '-D',
-          'vitest',
-          '@vitest/ui',
-          '@vitest/coverage-v8',
-          '@vitest/browser-playwright',
-          '@testing-library/react',
-          '@testing-library/jest-dom',
-          '@testing-library/user-event',
-          '@vitejs/plugin-react',
-          'vite',
-          'jsdom',
-          'playwright',
-        ], { cwd: this.destinationRoot() });
+        runSync(
+          'pnpm',
+          [
+            'add',
+            '-D',
+            'vitest',
+            '@vitest/ui',
+            '@vitest/coverage-v8',
+            '@vitest/browser-playwright',
+            '@testing-library/react',
+            '@testing-library/jest-dom',
+            '@testing-library/user-event',
+            '@vitejs/plugin-react',
+            'vite',
+            'jsdom',
+            'playwright',
+          ],
+          { cwd: this.destinationRoot() },
+        );
         this.log('Vitest and testing packages installed!');
       }
     };
@@ -753,7 +765,10 @@ export default class extends Generator {
     await this.withRetry(() => this.installNextJS(), 'Next.js install');
     await this.withRetry(() => this.installCypress(), 'Cypress');
     await this.withRetry(() => this.installI18n(), 'i18n');
-    await this.withRetry(() => this.installIntlMessageFormat(), 'intl-messageformat');
+    await this.withRetry(
+      () => this.installIntlMessageFormat(),
+      'intl-messageformat',
+    );
     await this.withRetry(() => this.installBaseUi(), 'Base UI');
     await this.withRetry(() => this.installRedux(), 'Redux');
     await this.withRetry(() => this.installVitest(), 'Vitest');
@@ -766,7 +781,10 @@ export default class extends Generator {
     await this.withRetry(() => this.installPrimitives(), 'Primitives');
     await this.withRetry(() => this.installStorybook(), 'Storybook');
     await this.withRetry(() => this.patchFiles(), 'Patch files');
-    await this.withRetry(() => this.patchPackageJsonScripts(), 'Patch package.json');
+    await this.withRetry(
+      () => this.patchPackageJsonScripts(),
+      'Patch package.json',
+    );
     if (this.options.git) {
       await this.withRetry(() => this.commitChanges(), 'Git commit');
     }
