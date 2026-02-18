@@ -10,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DOT = '.';
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 2000;
 const STORYBOOK_FOLDER = '.storybook';
 const PLATFORM_NEXT_FOLDER = 'platform-next';
 const PLATFORM_NEXT_SRC_FOLDER = `${PLATFORM_NEXT_FOLDER}/src`;
@@ -53,6 +55,18 @@ function deleteFileIfExists(filePath) {
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
+}
+
+/** Runs spawnSync and throws if exit code is non-zero (so steps can be retried). */
+function runSync(command, args, options = {}) {
+  const result = spawnSync(command, args, { stdio: 'inherit', ...options });
+  if (result.status !== 0) {
+    const msg = result.error
+      ? result.error.message
+      : `Exit code ${result.status}`;
+    throw new Error(`${command} ${args.join(' ')} failed: ${msg}`);
+  }
+  return result;
 }
 
 export default class extends Generator {
@@ -203,16 +217,44 @@ export default class extends Generator {
       this.log('Installing Next.js...');
       const patchPackages = ''; //'next@14 react@18 react-dom@18';
       const additionalPackages = `react-tooltip ${patchPackages} class-variance-authority tailwind-merge`;
-      await new Promise((resolve, error) => {
-        exec(
-          `npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(
-            this.options.project,
-          )} && pnpm add ${additionalPackages}`,
-        ).on('exit', (code) => {
+      const installCommand = `npx ${createNextAppCommand.join(' ')} && cd ${toKebabCase(
+        this.options.project,
+      )} && pnpm add ${additionalPackages}`;
+      const INSTALL_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+      await new Promise((resolve, reject) => {
+        const child = exec(installCommand, {
+          maxBuffer: 10 * 1024 * 1024, // 10MB to avoid EPIPE when output is large
+        });
+        const timeoutId = setTimeout(() => {
+          child.kill('SIGTERM');
+          reject(
+            new Error(
+              `Next.js install did not finish within ${INSTALL_TIMEOUT_MS / 60000} minutes. Try again or run the command manually.`,
+            ),
+          );
+        }, INSTALL_TIMEOUT_MS);
+        child.on('exit', (code) => {
+          clearTimeout(timeoutId);
+          if (code !== 0) {
+            reject(
+              new Error(
+                `Next.js install exited with code ${code}. Check the output above for errors.`,
+              ),
+            );
+            return;
+          }
           this.destinationRoot(
             this.destinationPath(toKebabCase(this.options.project)),
           );
           resolve();
+        });
+        child.on('error', (err) => {
+          clearTimeout(timeoutId);
+          reject(
+            new Error(
+              `Next.js install failed: ${err.message}. You may have hit a network or spawn issue; try again.`,
+            ),
+          );
         });
       });
     };
@@ -223,6 +265,7 @@ export default class extends Generator {
         this.log('Installing Storybook...');
         const versionsRaw = execSync('npm view storybook versions --json', {
           encoding: 'utf-8',
+          timeout: 30000, // 30s – avoid hanging on slow/unresponsive registry
         });
         const versions = JSON.parse(versionsRaw);
 
@@ -248,25 +291,20 @@ export default class extends Generator {
 
         this.log(`Latest stable 10.x version: ${latest10}`);
         // Initializing storybook with nextjs+vite
-        spawnSync(
-          'npx',
-          [
-            '-y',
-            `storybook@${latest10}`,
-            'init',
-            '--no-dev',
-            '--yes',
-            '--type',
-            'nextjs',
-            '--builder',
-            'vite',
-          ],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        runSync('npx', [
+          '-y',
+          `storybook@${latest10}`,
+          'init',
+          '--no-dev',
+          '--yes',
+          '--type',
+          'nextjs',
+          '--builder',
+          'vite',
+        ], { cwd: this.destinationRoot() });
         this.log('Storybook installed!');
         // Verifies the correct nextjs-vite framework is used
-        spawnSync('pnpm', ['add', '-D', '@storybook/nextjs-vite@^10'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', '@storybook/nextjs-vite@^10'], {
           cwd: this.destinationRoot(),
         });
         this.log('@storybook/nextjs-vite installed!');
@@ -277,23 +315,18 @@ export default class extends Generator {
       // Conditionally add Cypress
       if (this.options.cypress) {
         this.log('Installing Cypress...');
-        spawnSync('pnpm', ['add', '-D', 'cypress'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', 'cypress'], {
           cwd: this.destinationRoot(),
         });
         this.log('Cypress installed!');
         if (this.options.bitloops) {
-          spawnSync(
-            'pnpm',
-            [
-              'add',
-              '-D',
-              'mochawesome',
-              'mochawesome-merge',
-              'mochawesome-report-generator',
-            ],
-            { stdio: 'inherit', cwd: this.destinationRoot() },
-          );
+          runSync('pnpm', [
+            'add',
+            '-D',
+            'mochawesome',
+            'mochawesome-merge',
+            'mochawesome-report-generator',
+          ], { cwd: this.destinationRoot() });
         }
       }
     };
@@ -302,8 +335,7 @@ export default class extends Generator {
       // Conditionally add i18n packages
       if (this.options.i18n) {
         this.log('Installing i18n packages...');
-        spawnSync('pnpm', ['add', 'i18next', 'i18next-icu', 'react-i18next'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', 'i18next', 'i18next-icu', 'react-i18next'], {
           cwd: this.destinationRoot(),
         });
         this.log('i18n packages installed!');
@@ -314,8 +346,7 @@ export default class extends Generator {
       // Conditionally add Base UI
       if (this.options.baseUi) {
         this.log('Installing Base UI...');
-        spawnSync('pnpm', ['add', '@base-ui/react@^1.1.0'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '@base-ui/react@^1.1.0'], {
           cwd: this.destinationRoot(),
         });
         this.log('Base UI installed!');
@@ -326,8 +357,7 @@ export default class extends Generator {
       // Conditionally add Redux Toolkit and React Redux
       if (this.options.redux) {
         this.log('Installing Redux Toolkit and React Redux...');
-        spawnSync('pnpm', ['add', '@reduxjs/toolkit', 'react-redux'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '@reduxjs/toolkit', 'react-redux'], {
           cwd: this.destinationRoot(),
         });
         this.log('Redux Toolkit and React Redux installed!');
@@ -338,25 +368,21 @@ export default class extends Generator {
       // Conditionally add Vitest and related testing packages
       if (this.options.vitest) {
         this.log('Installing Vitest and testing packages...');
-        spawnSync(
-          'pnpm',
-          [
-            'add',
-            '-D',
-            'vitest',
-            '@vitest/ui',
-            '@vitest/coverage-v8',
-            '@vitest/browser-playwright',
-            '@testing-library/react',
-            '@testing-library/jest-dom',
-            '@testing-library/user-event',
-            '@vitejs/plugin-react',
-            'vite',
-            'jsdom',
-            'playwright',
-          ],
-          { stdio: 'inherit', cwd: this.destinationRoot() },
-        );
+        runSync('pnpm', [
+          'add',
+          '-D',
+          'vitest',
+          '@vitest/ui',
+          '@vitest/coverage-v8',
+          '@vitest/browser-playwright',
+          '@testing-library/react',
+          '@testing-library/jest-dom',
+          '@testing-library/user-event',
+          '@vitejs/plugin-react',
+          'vite',
+          'jsdom',
+          'playwright',
+        ], { cwd: this.destinationRoot() });
         this.log('Vitest and testing packages installed!');
       }
     };
@@ -365,8 +391,7 @@ export default class extends Generator {
       // Conditionally add web-vitals
       if (this.options.webVitals) {
         this.log('Installing web-vitals...');
-        spawnSync('pnpm', ['add', 'web-vitals'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', 'web-vitals'], {
           cwd: this.destinationRoot(),
         });
         this.log('web-vitals installed!');
@@ -377,8 +402,7 @@ export default class extends Generator {
       // Conditionally add Zod
       if (this.options.zod) {
         this.log('Installing Zod...');
-        spawnSync('pnpm', ['add', 'zod'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', 'zod'], {
           cwd: this.destinationRoot(),
         });
         this.log('Zod installed!');
@@ -389,8 +413,7 @@ export default class extends Generator {
       // Conditionally add @next/bundle-analyzer
       if (this.options.bundleAnalyzer) {
         this.log('Installing @next/bundle-analyzer...');
-        spawnSync('pnpm', ['add', '-D', '@next/bundle-analyzer'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', '@next/bundle-analyzer'], {
           cwd: this.destinationRoot(),
         });
         this.log('@next/bundle-analyzer installed!');
@@ -401,8 +424,7 @@ export default class extends Generator {
       // Conditionally add react-icons
       if (this.options.reactIcons) {
         this.log('Installing react-icons...');
-        spawnSync('pnpm', ['add', 'react-icons'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', 'react-icons'], {
           cwd: this.destinationRoot(),
         });
         this.log('react-icons installed!');
@@ -413,13 +435,11 @@ export default class extends Generator {
       // Conditionally add Mock Service Worker
       if (this.options.msw) {
         this.log('Installing Mock Service Worker (MSW)...');
-        spawnSync('pnpm', ['add', '-D', 'msw'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', 'msw'], {
           cwd: this.destinationRoot(),
         });
         // Initialize MSW
-        spawnSync('npx', ['msw', 'init', 'public/', '--save'], {
-          stdio: 'inherit',
+        runSync('npx', ['msw', 'init', 'public/', '--save'], {
           cwd: this.destinationRoot(),
         });
         this.log('MSW installed!');
@@ -430,8 +450,7 @@ export default class extends Generator {
       // Conditionally add babel-plugin-react-compiler
       if (this.options.reactCompiler) {
         this.log('Installing babel-plugin-react-compiler...');
-        spawnSync('pnpm', ['add', '-D', 'babel-plugin-react-compiler'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', 'babel-plugin-react-compiler'], {
           cwd: this.destinationRoot(),
         });
         this.log('babel-plugin-react-compiler installed!');
@@ -442,8 +461,7 @@ export default class extends Generator {
       // Add intl-messageformat when i18n is enabled
       if (this.options.i18n) {
         this.log('Installing intl-messageformat...');
-        spawnSync('pnpm', ['add', 'intl-messageformat'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', 'intl-messageformat'], {
           cwd: this.destinationRoot(),
         });
         this.log('intl-messageformat installed!');
@@ -627,8 +645,7 @@ export default class extends Generator {
           const path = 'cypress/helpers/index.ts';
           this.fs.copyTpl(this.templatePath(path), this.destinationPath(path));
         }
-        spawnSync('pnpm', ['add', '-D', 'react-aria-components'], {
-          stdio: 'inherit',
+        runSync('pnpm', ['add', '-D', 'react-aria-components'], {
           cwd: this.destinationRoot(),
         });
       }
@@ -669,20 +686,43 @@ export default class extends Generator {
 
     this.commitChanges = async function () {
       this.log('Committing changes to git...');
-      await new Promise((resolve) => {
-        exec(
+      await new Promise((resolve, reject) => {
+        const child = exec(
           `cd ${toKebabCase(
             this.options.project,
           )} && git add . && git commit -m "Initial setup"`,
-        ).on('exit', (code) => {
+        );
+        child.on('exit', (code) => {
           if (code !== 0) {
             this.log('Error committing changes to git! ', code);
-            resolve();
+          } else {
+            this.log('Git changes committed!');
           }
-          this.log('Git changes committed!');
           resolve();
         });
+        child.on('error', (err) => {
+          this.log('Git commit failed: ', err.message);
+          resolve(); // do not fail the whole run if git commit fails
+        });
       });
+    };
+
+    /** Runs a step (sync or async), retrying up to MAX_RETRIES times on failure. */
+    this.withRetry = async function (fn, stepName) {
+      let lastErr;
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          return await Promise.resolve(fn());
+        } catch (err) {
+          lastErr = err;
+          if (attempt === MAX_RETRIES) break;
+          this.log(
+            `Step "${stepName}" failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}. Retrying in ${RETRY_DELAY_MS / 1000}s...`,
+          );
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+        }
+      }
+      throw lastErr;
     };
   }
 
@@ -710,25 +750,25 @@ export default class extends Generator {
   }
 
   async main() {
-    await this.installNextJS();
-    this.installCypress();
-    this.installI18n();
-    this.installIntlMessageFormat();
-    this.installBaseUi();
-    this.installRedux();
-    this.installVitest();
-    this.installWebVitals();
-    this.installZod();
-    this.installBundleAnalyzer();
-    this.installReactIcons();
-    this.installMsw();
-    this.installReactCompiler();
-    this.installPrimitives();
-    this.installStorybook();
-    await this.patchFiles();
-    await this.patchPackageJsonScripts();
+    await this.withRetry(() => this.installNextJS(), 'Next.js install');
+    await this.withRetry(() => this.installCypress(), 'Cypress');
+    await this.withRetry(() => this.installI18n(), 'i18n');
+    await this.withRetry(() => this.installIntlMessageFormat(), 'intl-messageformat');
+    await this.withRetry(() => this.installBaseUi(), 'Base UI');
+    await this.withRetry(() => this.installRedux(), 'Redux');
+    await this.withRetry(() => this.installVitest(), 'Vitest');
+    await this.withRetry(() => this.installWebVitals(), 'web-vitals');
+    await this.withRetry(() => this.installZod(), 'Zod');
+    await this.withRetry(() => this.installBundleAnalyzer(), 'bundle-analyzer');
+    await this.withRetry(() => this.installReactIcons(), 'react-icons');
+    await this.withRetry(() => this.installMsw(), 'MSW');
+    await this.withRetry(() => this.installReactCompiler(), 'react-compiler');
+    await this.withRetry(() => this.installPrimitives(), 'Primitives');
+    await this.withRetry(() => this.installStorybook(), 'Storybook');
+    await this.withRetry(() => this.patchFiles(), 'Patch files');
+    await this.withRetry(() => this.patchPackageJsonScripts(), 'Patch package.json');
     if (this.options.git) {
-      await this.commitChanges();
+      await this.withRetry(() => this.commitChanges(), 'Git commit');
     }
   }
 

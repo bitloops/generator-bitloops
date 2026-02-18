@@ -1,6 +1,6 @@
 {
   "name": "generator-bitloops",
-  "version": "0.3.30",
+  "version": "0.3.32",
   "description": "Next.js with TypeScript, Tailwind, Storybook and Cypress generator by Bitloops",
   "license": "MIT",
   "author": "Bitloops S.A.",
